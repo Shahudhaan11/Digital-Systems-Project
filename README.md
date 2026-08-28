@@ -122,4 +122,3 @@ src/
 
 ---
 
-*Built as a university project for the Mobile Applications module (UFCF7H-15-3).*
