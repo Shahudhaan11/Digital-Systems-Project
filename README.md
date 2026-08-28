@@ -1,56 +1,125 @@
-# Welcome to your Expo app 👋
+# 🎬 SeatFlick
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A mobile cinema booking app built with React Native and Expo. Browse movies pulled live from The Movie Database (TMDB), pick a date, showtime and seats, and save your bookings and favourites on the device so they persist between sessions.
 
-## Get started
+---
 
-1. Install dependencies
+## ⚙️ Installation & Run Instructions
 
+### Prerequisites
+- **Node.js** (LTS version — v22 recommended)
+- **Expo Go** app on a physical device, **or** an **Android emulator** via Android Studio
+- A free **TMDB API key** (see below)
+
+### Setup
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/YOUR-USERNAME/seatflick.git
+   cd seatflick
+   ```
+
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-2. Start the app
+3. **Add your TMDB API key**
+   Open `src/services/tmdb.js` and paste your free key into the `API_KEY` value:
+   ```javascript
+   const API_KEY = 'YOUR_TMDB_API_KEY';
+   ```
+   A key can be created for free at <https://www.themoviedb.org> under **Settings → API**.
 
+4. **Start the app**
    ```bash
    npx expo start
    ```
+   Then press **`a`** to open on an Android emulator, or scan the QR code with the Expo Go app on your phone.
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## ✨ Feature List
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- **Browse movies** — a live list of films fetched from the TMDB API, each with a poster and rating.
+- **Categories** — switch between *Popular*, *Now Playing* and *Top Rated* (separate TMDB endpoints).
+- **Search** — filter the movie list in real time by typing a title.
+- **Movie details** — a dedicated screen per film with a large poster, release year, rating and description.
+- **Favourites / watchlist** — tap the heart on any movie to save it; favourites live on their own tab and persist between sessions.
+- **Seat booking flow** — choose a date (next 7 days), a showtime, and seats from an interactive grid.
+- **Taken-seat detection** — seats already booked for the same movie, date and time are greyed out and cannot be re-selected.
+- **Booking confirmation ticket** — a styled cinema ticket with a unique booking reference and barcode.
+- **My Bookings** — every confirmed booking is saved and listed, and can be cancelled individually.
+- **Settings** — clear all saved bookings.
+- **Loading & error states** — spinners while data loads and friendly messages if the network fails.
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## 📱 Screenshots
 
-```bash
-npm run reset-project
+| Home | Movie Details | Seat Selection |
+|------|---------------|----------------|
+| ![Home](screenshots/home.png) | ![Details](screenshots/details.png) | ![Seats](screenshots/seats.png) |
+
+| Ticket | My Bookings | Favourites |
+|--------|-------------|------------|
+| ![Ticket](screenshots/ticket.png) | ![Bookings](screenshots/bookings.png) | ![Favourites](screenshots/favourites.png) |
+
+| Settings |
+|----------|
+| ![Settings](screenshots/settings.png) |
+
+---
+
+## 🛠 Technologies Used
+
+- **React Native** — cross-platform mobile framework
+- **Expo (SDK 54)** — tooling and runtime
+- **Expo Router** — file-based navigation (bottom tabs + stack)
+- **React Hooks** (`useState`, `useEffect`, `useCallback`, `useFocusEffect`) — state management
+- **AsyncStorage** — local, on-device persistence for bookings and favourites
+- **TMDB API** — live movie data
+- **react-native-svg** — the custom SeatFlick logo
+- **expo-blur** — the frosted-glass navigation bar
+- **@expo/vector-icons (Ionicons)** — interface icons
+- **expo-splash-screen** — branded launch screen
+
+---
+
+## 📁 Project Structure
+
+```
+src/
+├── app/
+│   ├── _layout.tsx            # Root stack navigator
+│   ├── (tabs)/                # Bottom tab screens
+│   │   ├── _layout.tsx        # Tab bar (frosted glass)
+│   │   ├── index.tsx          # Home (search + categories)
+│   │   ├── favourites.tsx     # Saved favourites
+│   │   ├── bookings.tsx       # Saved bookings
+│   │   └── settings.tsx       # Settings
+│   ├── movie/[id].tsx         # Movie details
+│   ├── seats.tsx              # Date/time/seat selection
+│   └── confirm.tsx            # Summary + ticket
+├── components/
+│   └── Logo.jsx               # SVG brand logo
+├── services/
+│   ├── tmdb.js                # API calls
+│   ├── bookings.js            # Booking persistence
+│   └── favourites.js          # Favourites persistence
+└── theme.js                   # Central colour palette
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-### Other setup steps
+## 🔧 Known Issues & Future Improvements
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+- **API key in source** — for simplicity the TMDB key is stored in `tmdb.js`. A production app would move it to an environment variable (`.env`).
+- **Simulated payment** — the booking flow does not process real payments.
+- **Edit bookings** — bookings can currently be cancelled and re-created, but not edited in place. Edit-in-place is a planned improvement.
+- **Local-only availability** — taken seats are tracked per device, not on a shared server.
+- **Expo Go splash** — when run through Expo Go, Expo Go's own loading screen appears before the app's branded splash. A standalone development build would show only the SeatFlick splash.
+- **Planned additions** — cast lists, trailers, and pull-to-refresh.
 
-## Learn more
+---
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+*Built as a university project for the Mobile Applications module (UFCF7H-15-3).*
