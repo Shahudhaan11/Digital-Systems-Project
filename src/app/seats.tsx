@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   seatTaken: { backgroundColor: colors.seatTaken },
   seatText: { fontSize: 10, color: colors.muted },
   seatTextSelected: { color: "#fff", fontWeight: "bold" },
-  seatTextTaken: { color: "#5A616B" },
+  seatTextTaken: { color: "#ffffff" },
   legend: {
     flexDirection: "row",
     justifyContent: "center",
