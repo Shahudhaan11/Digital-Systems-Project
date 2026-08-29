@@ -21,3 +21,7 @@ export async function toggleFavourite(movie) {
   await AsyncStorage.setItem(KEY, JSON.stringify(updated));
   return !exists;
 }
+
+export async function clearFavourites() {
+  await AsyncStorage.removeItem(KEY);
+}
