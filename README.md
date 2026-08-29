@@ -5,26 +5,28 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS-informational)
 
-**SeatFlick** is a mobile cinema booking app built with React Native and Expo. Browse movies pulled live from The Movie Database (TMDB), pick a date, showtime and seats, and save your bookings and favourites on the device so they persist between sessions — all wrapped in a dark, frosted-glass interface.
+**SeatFlick** is a mobile cinema booking app built with React Native and Expo. Browse movies pulled live from The Movie Database (TMDB), pick a date, showtime and seats, and save your bookings and favourites on the device so they persist between sessions - all wrapped in a dark, frosted-glass interface.
 
 > _Your seat to every story._
+
+<!-- Optional: add a demo GIF here later, e.g. ![Demo](screenshots/demo.gif) -->
 
 ---
 
 ## Features
 
-|     | Feature                    | Description                                                                              |
-| --- | -------------------------- | ---------------------------------------------------------------------------------------- |
-| 🎞️  | **Browse & categories**    | Live movie lists from TMDB, switchable between _Popular_, _Now Playing_ and _Top Rated_. |
-| 🔍  | **Live search**            | Filter the movie list in real time as you type.                                          |
-| 📄  | **Movie details**          | Poster, release year, rating and synopsis for each film.                                 |
-| ❤️  | **Favourites**             | Save movies with a tap; they live on their own tab and persist between sessions.         |
-| 🎟️  | **Seat booking**           | Pick a date (next 7 days), a showtime, and seats from an interactive grid.               |
-| 🚫  | **Taken-seat detection**   | Seats already booked for the same showing are greyed out and locked.                     |
-| 🧾  | **Ticket confirmation**    | A styled cinema ticket with a unique reference code and barcode.                         |
-| 📋  | **My Bookings**            | All confirmed bookings saved locally, each cancellable individually.                     |
-| ⚙️  | **Settings**               | Usage stats, clear-data controls, share, and app info.                                   |
-| ⏳  | **Loading & error states** | Spinners while loading and friendly messages on network failure.                         |
+| Feature                    | Description                                                                              |
+| -------------------------- | ---------------------------------------------------------------------------------------- |
+| **Browse & categories**    | Live movie lists from TMDB, switchable between _Popular_, _Now Playing_ and _Top Rated_. |
+| **Live search**            | Filter the movie list in real time as you type.                                          |
+| **Movie details**          | Poster, release year, rating and synopsis for each film.                                 |
+| **Favourites**             | Save movies with a tap; they live on their own tab and persist between sessions.         |
+| **Seat booking**           | Pick a date (next 7 days), a showtime, and seats from an interactive grid.               |
+| **Taken-seat detection**   | Seats already booked for the same showing are greyed out and locked.                     |
+| **Ticket confirmation**    | A styled cinema ticket with a unique reference code and barcode.                         |
+| **My Bookings**            | All confirmed bookings saved locally, each cancellable individually.                     |
+| **Settings**               | Usage stats, clear-data controls, share, and app info.                                   |
+| **Loading & error states** | Spinners while loading and friendly messages on network failure.                         |
 
 ---
 
@@ -32,7 +34,7 @@
 
 ### Prerequisites
 
-- **Node.js** (LTS version — v22 recommended)
+- **Node.js** (LTS version - v22 recommended)
 - **Expo Go** app on a physical device, **or** an **Android emulator** via Android Studio
 - A free **TMDB API key** (see below)
 
@@ -58,7 +60,7 @@
    TMDB_API_KEY=your_tmdb_api_key_here
    ```
 
-   A key can be created for free at <https://www.themoviedb.org> under **Settings → API**. The app reads it automatically via `react-native-dotenv`.
+   A key can be created for free at <https://www.themoviedb.org> under **Settings > API**. The app reads it automatically via `react-native-dotenv`.
 
 4. **Start the app**
    ```bash
@@ -78,9 +80,9 @@
 | --------------------------------- | ------------------------------------- | ----------------------------------------- |
 | ![Ticket](screenshots/ticket.png) | ![Bookings](screenshots/bookings.png) | ![Favourites](screenshots/favourites.png) |
 
-| Settings  
-| -------------------------------------
-| ![Settings](screenshots/settings.png)
+| Settings                              | Splash                            |
+| ------------------------------------- | --------------------------------- |
+| ![Settings](screenshots/settings.png) | ![Splash](screenshots/splash.png) |
 
 ---
 
@@ -90,26 +92,26 @@ A quick tour of the app's architecture and the decisions behind it:
 
 - **Navigation (Expo Router).** Navigation is file-based. A root **stack** wraps a **bottom-tab** group (`Home`, `Favourites`, `Bookings`, `Settings`); tapping a movie pushes detail, seat and confirmation screens on top of the tabs. This combines tab and stack navigation in one structure.
 - **State management (React Hooks).** Screen state (loading flags, the movie list, selected seats, search text, chosen category) is handled with `useState` and `useEffect`. `useFocusEffect` re-reads saved data whenever a tab regains focus, so lists stay current after a booking or favourite is added.
-- **Persistence (AsyncStorage).** Two independent datasets — **bookings** and **favourites** — are serialised to on-device storage, so they survive the app being fully closed. All storage logic is isolated in `src/services/` rather than scattered through the screens.
+- **Persistence (AsyncStorage).** Two independent datasets - **bookings** and **favourites** - are serialised to on-device storage, so they survive the app being fully closed. All storage logic is isolated in `src/services/` rather than scattered through the screens.
 - **Data & error handling (TMDB API).** All network calls live in `services/tmdb.js`. Every request shows a loading spinner and falls back to a friendly error message if the network or API key fails.
-- **Seat availability.** When a date and showtime are chosen, the app checks existing bookings for that exact movie/date/time and disables any seats already taken — preventing double-booking per showing.
+- **Seat availability.** When a date and showtime are chosen, the app checks existing bookings for that exact movie/date/time and disables any seats already taken - preventing double-booking per showing.
 - **Theming.** A single `theme.js` palette drives every screen, keeping the dark, blue-accent look consistent and easy to change in one place.
 
 ---
 
 ## Technologies Used
 
-- **React Native** — cross-platform mobile framework
-- **Expo (SDK 54)** — tooling and runtime
-- **Expo Router** — file-based navigation (bottom tabs + stack)
-- **React Hooks** (`useState`, `useEffect`, `useCallback`, `useFocusEffect`) — state management
-- **AsyncStorage** — local, on-device persistence for bookings and favourites
-- **TMDB API** — live movie data
-- **react-native-dotenv** — keeps the API key in a private `.env` file, out of the repository
-- **react-native-svg** — the custom SeatFlick logo
-- **expo-blur** — the frosted-glass navigation bar
-- **@expo/vector-icons (Ionicons)** — interface icons
-- **expo-splash-screen** — branded launch screen
+- **React Native** - cross-platform mobile framework
+- **Expo (SDK 54)** - tooling and runtime
+- **Expo Router** - file-based navigation (bottom tabs + stack)
+- **React Hooks** (`useState`, `useEffect`, `useCallback`, `useFocusEffect`) - state management
+- **AsyncStorage** - local, on-device persistence for bookings and favourites
+- **TMDB API** - live movie data
+- **react-native-dotenv** - keeps the API key in a private `.env` file, out of the repository
+- **react-native-svg** - the custom SeatFlick logo
+- **expo-blur** - the frosted-glass navigation bar
+- **@expo/vector-icons (Ionicons)** - interface icons
+- **expo-splash-screen** - branded launch screen
 
 ---
 
@@ -141,11 +143,11 @@ src/
 
 ## Known Issues & Future Improvements
 
-- **Simulated payment** — the booking flow does not process real payments.
-- **Edit bookings** — bookings can be cancelled and re-created, but not edited in place. Edit-in-place is a planned improvement.
-- **Local-only availability** — taken seats are tracked per device, not on a shared server.
-- **Expo Go splash** — when run through Expo Go, Expo Go's own loading screen appears before the app's branded splash. A standalone development build would show only the SeatFlick splash.
-- **Planned additions** — cast lists, trailers, and pull-to-refresh.
+- **Simulated payment** - the booking flow does not process real payments.
+- **Edit bookings** - bookings can be cancelled and re-created, but not edited in place. Edit-in-place is a planned improvement.
+- **Local-only availability** - taken seats are tracked per device, not on a shared server.
+- **Expo Go splash** - when run through Expo Go, Expo Go's own loading screen appears before the app's branded splash. A standalone development build would show only the SeatFlick splash.
+- **Planned additions** - cast lists, trailers, and pull-to-refresh.
 
 ---
 
