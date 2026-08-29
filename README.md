@@ -78,9 +78,9 @@
 | --------------------------------- | ------------------------------------- | ----------------------------------------- |
 | ![Ticket](screenshots/ticket.png) | ![Bookings](screenshots/bookings.png) | ![Favourites](screenshots/favourites.png) |
 
-| Settings                              | Splash                                 |
-| ------------------------------------- | -------------------------------------- |
-| ![Settings](screenshots/settings.png) | ![Splash](screenshots/splash-icon.png) |
+| Settings  
+| -------------------------------------
+| ![Settings](screenshots/settings.png)
 
 ---
 
