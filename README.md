@@ -1,4 +1,4 @@
-# 🎬 SeatFlick
+# SeatFlick
 
 ![React Native](https://img.shields.io/badge/React_Native-20232A?logo=react&logoColor=61DAFB)
 ![Expo](https://img.shields.io/badge/Expo_SDK_54-000020?logo=expo&logoColor=white)
@@ -11,7 +11,7 @@
 
 ---
 
-## ✨ Features
+## Features
 
 |     | Feature                    | Description                                                                              |
 | --- | -------------------------- | ---------------------------------------------------------------------------------------- |
@@ -28,7 +28,7 @@
 
 ---
 
-## ⚙️ Installation & Run Instructions
+## Installation & Run Instructions
 
 ### Prerequisites
 
@@ -68,7 +68,7 @@
 
 ---
 
-## 📱 Screenshots
+## Screenshots
 
 | Home                          | Movie Details                       | Seat Selection                  |
 | ----------------------------- | ----------------------------------- | ------------------------------- |
@@ -84,7 +84,7 @@
 
 ---
 
-## 🧠 How It Works
+## How It Works
 
 A quick tour of the app's architecture and the decisions behind it:
 
@@ -97,7 +97,7 @@ A quick tour of the app's architecture and the decisions behind it:
 
 ---
 
-## 🛠 Technologies Used
+## Technologies Used
 
 - **React Native** — cross-platform mobile framework
 - **Expo (SDK 54)** — tooling and runtime
@@ -113,7 +113,7 @@ A quick tour of the app's architecture and the decisions behind it:
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
@@ -139,7 +139,7 @@ src/
 
 ---
 
-## 🔧 Known Issues & Future Improvements
+## Known Issues & Future Improvements
 
 - **Simulated payment** — the booking flow does not process real payments.
 - **Edit bookings** — bookings can be cancelled and re-created, but not edited in place. Edit-in-place is a planned improvement.
@@ -149,15 +149,13 @@ src/
 
 ---
 
-## 💭 Reflection
+## Reflection
 
-This project was my introduction to React Native, and the steepest part of the learning curve was the environment itself — resolving a Node/npm version conflict during setup and an Expo SDK / Expo Go compatibility mismatch before the app would even run on a device. Once past that, building each feature incrementally made the framework click: I learned how file-based routing combines stack and tab navigation, how React hooks drive screen state, and how AsyncStorage provides real persistence. Adding a second saved dataset (favourites) reinforced the pattern, and implementing taken-seat detection pushed me to think about data relationships rather than just displaying values. If I were to extend it, I'd move seat availability to a shared backend and add in-place booking edits.
-
-_(Feel free to edit this to your own voice.)_
+This project was my introduction to React Native and the most challenging part of this learning journey was the environment itself, which was resolving a Node/npm version conflict during setup and an Expo SDK / Expo Go compatibility mismatch before the app would even run on a device. Once past that, building each feature gradually made the framework click as I learned how file-based routing combines stack and tab navigation, how React hooks manage screen state, and how AsyncStorage provides real-life persistence. Adding a second saved dataset (favourites) reinforced the pattern, and implementing taken-seat detection pushed me to think about data relationships rather than just displaying values. If I were to extend it, I'd move seat availability to a shared backend and add in-place booking edits.
 
 ---
 
-## 📄 Attribution
+## Attribution
 
 Movie data provided by [The Movie Database (TMDB)](https://www.themoviedb.org). This product uses the TMDB API but is not endorsed or certified by TMDB.
 
