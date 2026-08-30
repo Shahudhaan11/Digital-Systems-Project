@@ -1,3 +1,4 @@
+import { useAuth } from "@/context/AuthProvider";
 import { getFavourites, toggleFavourite } from "@/services/favourites";
 import { IMAGE_URL } from "@/services/tmdb";
 import { colors } from "@/theme";
@@ -15,22 +16,40 @@ import {
 
 export default function FavouritesScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const [favs, setFavs] = useState([]);
 
   async function load() {
-    setFavs(await getFavourites());
+    setFavs(user ? await getFavourites() : []);
   }
 
-  
   useFocusEffect(
     useCallback(() => {
       load();
-    }, []),
+    }, [user]),
   );
 
   async function remove(movie) {
     await toggleFavourite(movie); // toggling an existing favourite removes it
     load();
+  }
+
+  if (!user) {
+    return (
+      <View style={styles.center}>
+        <Ionicons name="heart-outline" size={48} color={colors.muted} />
+        <Text style={styles.emptyTitle}>Log in to save favourites</Text>
+        <Text style={styles.emptyText}>
+          Create an account or log in to start saving movies.
+        </Text>
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={() => router.push("/welcome")}
+        >
+          <Text style={styles.loginButtonText}>Log In / Sign Up</Text>
+        </TouchableOpacity>
+      </View>
+    );
   }
 
   if (favs.length === 0) {
@@ -107,6 +126,14 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   emptyText: { fontSize: 14, color: colors.muted, textAlign: "center" },
+  loginButton: {
+    backgroundColor: colors.accent,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    marginTop: 16,
+  },
+  loginButtonText: { color: "#fff", fontSize: 15, fontWeight: "bold" },
   card: {
     flexDirection: "row",
     alignItems: "center",

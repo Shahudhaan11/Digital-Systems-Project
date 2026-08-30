@@ -1,7 +1,10 @@
 // src/app/(tabs)/index.tsx
 import { Logo } from "@/components/Logo";
+import { useAuth } from "@/context/AuthProvider";
+import { supabase } from "@/services/supabase";
 import { getMovies, IMAGE_URL } from "@/services/tmdb";
 import { colors } from "@/theme";
+import { confirmAction } from "@/utils/confirmDialog";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -24,6 +27,7 @@ const CATEGORIES = [
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { username } = useAuth() as { username: string | null };
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -57,10 +61,36 @@ export default function HomeScreen() {
     m.title.toLowerCase().includes(search.toLowerCase()),
   );
 
+  function handleLogout() {
+    confirmAction(
+      "Log out?",
+      "You will need to log in again.",
+      () => supabase.auth.signOut(),
+      "Log out",
+      true,
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Logo size={40} />
+        {username ? (
+          <View style={styles.userBox}>
+            <Text style={styles.welcome} numberOfLines={1}>
+              Welcome, {username}!
+            </Text>
+            <TouchableOpacity onPress={handleLogout}>
+              <Text style={styles.logoutLink}>Log Out</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity onPress={() => router.push("/welcome" as any)}>
+            <Text style={styles.authLink} numberOfLines={1}>
+              Log In / Sign Up
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Search bar */}
@@ -151,7 +181,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  header: { marginBottom: 14 },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+  userBox: {
+    alignItems: "flex-end",
+    marginLeft: 12,
+    flexShrink: 1,
+  },
+  welcome: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "right",
+  },
+  logoutLink: {
+    color: colors.danger,
+    fontSize: 12,
+    fontWeight: "600",
+    marginTop: 4,
+  },
+  authLink: {
+    color: colors.accent,
+    fontSize: 14,
+    fontWeight: "600",
+  },
   searchBox: {
     flexDirection: "row",
     alignItems: "center",

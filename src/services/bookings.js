@@ -1,43 +1,81 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { supabase } from "./supabase";
 
-const KEY = "bookings"; // the "label" our data is stored under
+function toBooking(row) {
+  return {
+    id: row.id,
+    reference: row.reference,
+    movieTitle: row.movie_title,
+    showDate: row.show_date,
+    showTime: row.show_time,
+    seats: row.seats,
+    total: row.total,
+    bookedAt: new Date(row.created_at).toLocaleString(),
+  };
+}
 
-// Load every saved booking (returns an array; empty if none yet).
+// Load every booking made by the signed-in user (newest first).
 export async function getBookings() {
-  const raw = await AsyncStorage.getItem(KEY);
-  return raw ? JSON.parse(raw) : [];
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data.map(toBooking);
 }
 
-// Add one new booking to the saved list.
+// Add one new booking for the signed-in user.
 export async function addBooking(booking) {
-  const current = await getBookings();
-  const updated = [booking, ...current]; // newest first
-  await AsyncStorage.setItem(KEY, JSON.stringify(updated));
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("You must be logged in to book.");
+
+  const { error } = await supabase.from("bookings").insert({
+    user_id: user.id,
+    reference: booking.reference,
+    movie_title: booking.movieTitle,
+    show_date: booking.showDate,
+    show_time: booking.showTime,
+    seats: booking.seats,
+    total: booking.total,
+  });
+  if (error) throw error;
 }
 
-// Delete all bookings (used by the Settings screen later).
+// Delete every booking belonging to the signed-in user.
 export async function clearBookings() {
-  await AsyncStorage.removeItem(KEY);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { error } = await supabase
+    .from("bookings")
+    .delete()
+    .eq("user_id", user.id);
+  if (error) throw error;
 }
 
 // Remove ONE booking by its id.
 export async function deleteBooking(id) {
-  const current = await getBookings();
-  const updated = current.filter((b) => b.id !== id);
-  await AsyncStorage.setItem(KEY, JSON.stringify(updated));
+  const { error } = await supabase.from("bookings").delete().eq("id", id);
+  if (error) throw error;
 }
 
-// Return a list of seats already taken for a given movie + date + time.
-// Used to grey out unavailable seats on the seat map.
+// Return a list of seats already taken for a given movie + date + time,
+// across every user (reads the public taken_seats view, not raw bookings).
 export async function getTakenSeats(movieTitle, showDate, showTime) {
-  const current = await getBookings();
+  const { data, error } = await supabase
+    .from("taken_seats")
+    .select("seats")
+    .eq("movie_title", movieTitle)
+    .eq("show_date", showDate)
+    .eq("show_time", showTime);
+  if (error) throw error;
+
   const taken = [];
-  for (const b of current) {
-    if (b.movieTitle === movieTitle && b.showDate === showDate && b.showTime === showTime) {
-      // b.seats is a string like "A1, B2" — split it back into a list.
-      const seatList = b.seats.split(',').map((s) => s.trim());
-      taken.push(...seatList);
-    }
+  for (const row of data) {
+    taken.push(...row.seats.split(",").map((s) => s.trim()));
   }
   return taken;
 }

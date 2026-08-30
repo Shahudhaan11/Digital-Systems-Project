@@ -1,13 +1,14 @@
-// src/app/(tabs)/settings.tsx
 import { Logo } from "@/components/Logo";
+import { useAuth } from "@/context/AuthProvider";
 import { clearBookings, getBookings } from "@/services/bookings";
 import { clearFavourites, getFavourites } from "@/services/favourites";
+import { supabase } from "@/services/supabase";
 import { colors } from "@/theme";
+import { confirmAction, notify } from "@/utils/confirmDialog";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
-  Alert,
   ScrollView,
   Share,
   StyleSheet,
@@ -20,56 +21,71 @@ export default function SettingsScreen() {
   const [bookingCount, setBookingCount] = useState(0);
   const [favCount, setFavCount] = useState(0);
   const [totalSpent, setTotalSpent] = useState(0);
+  const auth = useAuth() as any;
+  const user = auth?.user as { email?: string } | null | undefined;
+  const username = auth?.username as string | null | undefined;
+  const router = useRouter();
 
   async function loadStats() {
-    const bookings = await getBookings();
+    if (!user) {
+      setBookingCount(0);
+      setFavCount(0);
+      setTotalSpent(0);
+      return;
+    }
+
+    const bookings = (await getBookings()) as Array<{
+      total?: number | string;
+    }>;
     const favs = await getFavourites();
     setBookingCount(bookings.length);
     setFavCount(favs.length);
-    setTotalSpent(bookings.reduce((sum, b) => sum + Number(b.total || 0), 0));
+    setTotalSpent(
+      bookings.reduce<number>((sum, b) => sum + Number(b.total || 0), 0),
+    );
   }
 
   useFocusEffect(
     useCallback(() => {
       loadStats();
-    }, []),
+    }, [user]),
   );
 
   function confirmClearBookings() {
-    Alert.alert(
+    confirmAction(
       "Clear all bookings?",
       "This will permanently remove every saved booking.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Clear",
-          style: "destructive",
-          onPress: async () => {
-            await clearBookings();
-            loadStats();
-            Alert.alert("Done", "All bookings cleared.");
-          },
-        },
-      ],
+      async () => {
+        await clearBookings();
+        loadStats();
+        notify("Done", "All bookings cleared.");
+      },
+      "Clear",
+      true,
     );
   }
 
   function confirmClearFavourites() {
-    Alert.alert(
+    confirmAction(
       "Clear all favourites?",
       "This will remove every saved favourite.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Clear",
-          style: "destructive",
-          onPress: async () => {
-            await clearFavourites();
-            loadStats();
-            Alert.alert("Done", "All favourites cleared.");
-          },
-        },
-      ],
+      async () => {
+        await clearFavourites();
+        loadStats();
+        notify("Done", "All favourites cleared.");
+      },
+      "Clear",
+      true,
+    );
+  }
+
+  function handleLogout() {
+    confirmAction(
+      "Log out?",
+      "You will need to log in again.",
+      () => supabase.auth.signOut(),
+      "Log out",
+      true,
     );
   }
 
@@ -91,6 +107,25 @@ export default function SettingsScreen() {
       showsVerticalScrollIndicator={false}
     >
       <Text style={styles.heading}>Settings</Text>
+
+      <Text style={styles.sectionLabel}>ACCOUNT</Text>
+      <View style={styles.aboutCard}>
+        <View style={styles.aboutRow}>
+          <Text style={styles.aboutKey}>Signed in as</Text>
+          <Text style={styles.aboutVal}>{username ?? user?.email ?? "Guest"}</Text>
+        </View>
+      </View>
+      {!user && (
+        <TouchableOpacity
+          style={styles.rowButton}
+          onPress={() => router.push("/welcome" as any)}
+        >
+          <Ionicons name="log-in-outline" size={20} color={colors.accent} />
+          <Text style={[styles.rowButtonText, { color: colors.accent }]}>
+            Log In / Sign Up
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {/* Stats */}
       <View style={styles.statsRow}>
@@ -159,6 +194,16 @@ export default function SettingsScreen() {
         Powered by The Movie Database (TMDB). This product uses the TMDB API but
         is not endorsed or certified by TMDB.
       </Text>
+
+      {user && (
+        <TouchableOpacity
+          style={[styles.rowButton, styles.logoutButton]}
+          onPress={handleLogout}
+        >
+          <Ionicons name="log-out-outline" size={20} color={colors.danger} />
+          <Text style={styles.rowButtonText}>Log Out</Text>
+        </TouchableOpacity>
+      )}
     </ScrollView>
   );
 }
@@ -202,6 +247,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 10,
     marginTop: 8,
+  },
+  logoutButton: {
+    marginTop: 20,
   },
   rowButton: {
     flexDirection: "row",

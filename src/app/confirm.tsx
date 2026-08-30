@@ -30,23 +30,25 @@ export default function ConfirmScreen() {
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [reference, setReference] = useState("");
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   async function confirmBooking() {
     setSaving(true);
+    setSaveError(null);
     const ref = "SF-" + Math.random().toString(36).slice(2, 7).toUpperCase();
     try {
       await addBooking({
-        id: Date.now().toString(),
         reference: ref,
         movieTitle,
         showDate,
         showTime,
         seats,
         total,
-        bookedAt: new Date().toLocaleString(),
       });
-    } catch (e) {
-      console.log("SAVE FAILED:", e);
+    } catch (e: any) {
+      setSaving(false);
+      setSaveError(e?.message ?? "Could not save your booking. Please try again.");
+      return;
     }
     setReference(ref);
     setSaving(false);
@@ -147,6 +149,9 @@ export default function ConfirmScreen() {
           <Text style={styles.rowValue}>${total}</Text>
         </View>
       </View>
+
+      {saveError ? <Text style={styles.errorText}>{saveError}</Text> : null}
+
       <TouchableOpacity
         style={styles.button}
         onPress={confirmBooking}
@@ -189,6 +194,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: 8,
+  },
+  errorText: {
+    color: colors.danger,
+    fontSize: 14,
+    marginBottom: 16,
+    textAlign: "center",
   },
   rowLabel: { fontSize: 15, color: colors.muted },
   rowValue: {

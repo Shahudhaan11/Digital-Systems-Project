@@ -1,6 +1,8 @@
+import { useAuth } from "@/context/AuthProvider";
 import { isFavourite, toggleFavourite } from "@/services/favourites";
 import { getMovieDetails, IMAGE_URL } from "@/services/tmdb";
 import { colors } from "@/theme";
+import { confirmAction } from "@/utils/confirmDialog";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -17,6 +19,7 @@ import {
 export default function MovieDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
 
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -27,17 +30,26 @@ export default function MovieDetailsScreen() {
       try {
         const data = await getMovieDetails(id);
         setMovie(data);
-        setFav(await isFavourite(data.id));
+        setFav(user ? await isFavourite(data.id) : false);
       } catch (e) {
       } finally {
         setLoading(false);
       }
     }
     load();
-  }, [id]);
+  }, [id, user]);
 
   async function onToggleFav() {
     if (!movie) return;
+    if (!user) {
+      confirmAction(
+        "Log in required",
+        "Please log in or create an account to save favourites.",
+        () => router.push("/welcome" as any),
+        "Log In / Sign Up",
+      );
+      return;
+    }
     const nowFav = await toggleFavourite({
       id: movie.id,
       title: movie.title,

@@ -1,10 +1,11 @@
 // src/app/(tabs)/bookings.tsx
+import { useAuth } from "@/context/AuthProvider";
 import { deleteBooking, getBookings } from "@/services/bookings";
 import { colors } from "@/theme";
-import { useFocusEffect } from "expo-router";
+import { confirmAction } from "@/utils/confirmDialog";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
-  Alert,
   FlatList,
   StyleSheet,
   Text,
@@ -24,31 +25,48 @@ type Booking = {
 };
 
 export default function BookingsScreen() {
+  const { user } = useAuth() as { user: unknown };
+  const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
 
   async function load() {
-    const saved = await getBookings();
-    setBookings(saved);
+    setBookings(user ? await getBookings() : []);
   }
 
   useFocusEffect(
     useCallback(() => {
       load();
-    }, []),
+    }, [user]),
   );
 
   function confirmCancel(id: string, movieTitle: string) {
-    Alert.alert("Cancel booking?", `Remove your booking for ${movieTitle}?`, [
-      { text: "Keep", style: "cancel" },
-      {
-        text: "Cancel booking",
-        style: "destructive",
-        onPress: async () => {
-          await deleteBooking(id);
-          load();
-        },
+    confirmAction(
+      "Cancel booking?",
+      `Remove your booking for ${movieTitle}?`,
+      async () => {
+        await deleteBooking(id);
+        load();
       },
-    ]);
+      "Cancel booking",
+      true,
+    );
+  }
+
+  if (!user) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.emptyTitle}>Log in to see your bookings</Text>
+        <Text style={styles.emptyText}>
+          Create an account or log in to book and track your tickets.
+        </Text>
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={() => router.push("/welcome" as any)}
+        >
+          <Text style={styles.loginButtonText}>Log In / Sign Up</Text>
+        </TouchableOpacity>
+      </View>
+    );
   }
 
   if (bookings.length === 0) {
@@ -122,6 +140,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   emptyText: { fontSize: 14, color: colors.muted, textAlign: "center" },
+  loginButton: {
+    backgroundColor: colors.accent,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    marginTop: 16,
+  },
+  loginButtonText: { color: "#fff", fontSize: 15, fontWeight: "bold" },
   card: {
     backgroundColor: colors.card,
     borderRadius: 16,

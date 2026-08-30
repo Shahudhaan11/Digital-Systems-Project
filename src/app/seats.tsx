@@ -1,6 +1,8 @@
 // src/app/seats.tsx
 import { getTakenSeats } from "@/services/bookings";
+import { useAuth } from "@/context/AuthProvider";
 import { colors } from "@/theme";
+import { confirmAction } from "@/utils/confirmDialog";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -36,6 +38,7 @@ const DAYS = getNextDays(7);
 export default function SeatsScreen() {
   const { movieTitle } = useLocalSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -70,6 +73,16 @@ export default function SeatsScreen() {
   const ready = selectedDate && selectedTime && selectedSeats.length > 0;
 
   function goToConfirm() {
+    if (!user) {
+      confirmAction(
+        "Log in required",
+        "Please log in or create an account to complete your booking.",
+        () => router.push("/welcome" as any),
+        "Log In / Sign Up",
+      );
+      return;
+    }
+
     router.push({
       pathname: "/confirm",
       params: {

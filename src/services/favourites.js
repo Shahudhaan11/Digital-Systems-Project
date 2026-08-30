@@ -1,27 +1,71 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from './supabase';
 
-const KEY = 'favourites';
+function toFavourite(row) {
+  return {
+    id: row.movie_id,
+    title: row.title,
+    poster_path: row.poster_path,
+    vote_average: row.vote_average,
+  };
+}
 
+// Load every favourite saved by the signed-in user (newest first).
 export async function getFavourites() {
-  const raw = await AsyncStorage.getItem(KEY);
-  return raw ? JSON.parse(raw) : [];
+  const { data, error } = await supabase
+    .from('favourites')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data.map(toFavourite);
 }
 
 export async function isFavourite(id) {
-  const favs = await getFavourites();
-  return favs.some((f) => f.id === id);
+  const { data, error } = await supabase
+    .from('favourites')
+    .select('movie_id')
+    .eq('movie_id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return !!data;
 }
 
 export async function toggleFavourite(movie) {
-  const favs = await getFavourites();
-  const exists = favs.some((f) => f.id === movie.id);
-  const updated = exists
-    ? favs.filter((f) => f.id !== movie.id)
-    : [movie, ...favs];
-  await AsyncStorage.setItem(KEY, JSON.stringify(updated));
-  return !exists;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('You must be logged in to save favourites.');
+
+  const exists = await isFavourite(movie.id);
+  if (exists) {
+    const { error } = await supabase
+      .from('favourites')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('movie_id', movie.id);
+    if (error) throw error;
+    return false;
+  }
+
+  const { error } = await supabase.from('favourites').insert({
+    user_id: user.id,
+    movie_id: movie.id,
+    title: movie.title,
+    poster_path: movie.poster_path,
+    vote_average: movie.vote_average,
+  });
+  if (error) throw error;
+  return true;
 }
 
 export async function clearFavourites() {
-  await AsyncStorage.removeItem(KEY);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { error } = await supabase
+    .from('favourites')
+    .delete()
+    .eq('user_id', user.id);
+  if (error) throw error;
 }
