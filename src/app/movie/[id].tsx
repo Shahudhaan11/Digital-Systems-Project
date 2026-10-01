@@ -5,7 +5,7 @@ import { colors } from "@/theme";
 import { confirmAction } from "@/utils/confirmDialog";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -23,21 +23,31 @@ export default function MovieDetailsScreen() {
 
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [fav, setFav] = useState(false);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const data = await getMovieDetails(id);
-        setMovie(data);
-        setFav(user ? await isFavourite(data.id) : false);
-      } catch (e) {
-      } finally {
-        setLoading(false);
-      }
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getMovieDetails(id);
+      setMovie(data);
+      setFav(user ? await isFavourite(data.id) : false);
+    } catch (e: any) {
+      setMovie(null);
+      setError(
+        e?.message === "Request failed"
+          ? "Could not load this movie. Check your internet connection and try again."
+          : e?.message ?? "Could not load this movie.",
+      );
+    } finally {
+      setLoading(false);
     }
-    load();
   }, [id, user]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function onToggleFav() {
     if (!movie) return;
@@ -70,7 +80,12 @@ export default function MovieDetailsScreen() {
   if (!movie) {
     return (
       <View style={styles.center}>
-        <Text style={styles.muted}>Could not load this movie.</Text>
+        <Text style={styles.muted}>
+          {error ?? "Could not load this movie."}
+        </Text>
+        <TouchableOpacity style={styles.retryButton} onPress={load}>
+          <Text style={styles.buttonText}>Retry</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -155,7 +170,14 @@ const styles = StyleSheet.create({
     color: "#C9D1DB",
     marginBottom: 24,
   },
-  muted: { color: colors.muted },
+  muted: { color: colors.muted, textAlign: "center", paddingHorizontal: 24 },
+  retryButton: {
+    marginTop: 16,
+    backgroundColor: colors.accent,
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    borderRadius: 12,
+  },
   button: {
     backgroundColor: colors.accent,
     padding: 16,

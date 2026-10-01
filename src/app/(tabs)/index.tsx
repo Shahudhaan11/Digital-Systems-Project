@@ -2,7 +2,7 @@
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/context/AuthProvider";
 import { supabase } from "@/services/supabase";
-import { getMovies, IMAGE_URL } from "@/services/tmdb";
+import { getMovies, IMAGE_URL, searchMovies } from "@/services/tmdb";
 import { colors } from "@/theme";
 import { confirmAction } from "@/utils/confirmDialog";
 import { Ionicons } from "@expo/vector-icons";
@@ -34,14 +34,19 @@ export default function HomeScreen() {
   const [category, setCategory] = useState("popular");
   const [search, setSearch] = useState("");
 
-  // Refetch whenever the chosen category changes.
+  // Refetch whenever the chosen category changes, or - debounced - whenever
+  // the search text changes. A non-empty search queries TMDB's search
+  // endpoint across its whole catalogue rather than filtering the ~20
+  // movies already loaded for the current category.
   useEffect(() => {
     let active = true;
+    const query = search.trim();
+
     async function load() {
       setLoading(true);
       setError(null);
       try {
-        const results = await getMovies(category);
+        const results = query ? await searchMovies(query) : await getMovies(category);
         if (active) setMovies(results);
       } catch (e) {
         if (active)
@@ -50,16 +55,16 @@ export default function HomeScreen() {
         if (active) setLoading(false);
       }
     }
-    load();
+
+    const delay = query ? 400 : 0;
+    const timer = setTimeout(load, delay);
     return () => {
       active = false;
+      clearTimeout(timer);
     };
-  }, [category]);
+  }, [category, search]);
 
-  // Live filter the loaded list by title.
-  const filtered = movies.filter((m) =>
-    m.title.toLowerCase().includes(search.toLowerCase()),
-  );
+  const isSearching = search.trim().length > 0;
 
   function handleLogout() {
     confirmAction(
@@ -113,12 +118,15 @@ export default function HomeScreen() {
       {/* Category chips */}
       <View style={styles.chipRow}>
         {CATEGORIES.map((c) => {
-          const active = category === c.key;
+          const active = !isSearching && category === c.key;
           return (
             <TouchableOpacity
               key={c.key}
               style={[styles.chip, active && styles.chipActive]}
-              onPress={() => setCategory(c.key)}
+              onPress={() => {
+                setSearch("");
+                setCategory(c.key);
+              }}
             >
               <Text style={[styles.chipText, active && styles.chipTextActive]}>
                 {c.label}
@@ -132,19 +140,23 @@ export default function HomeScreen() {
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.accent} />
-          <Text style={styles.muted}>Loading movies…</Text>
+          <Text style={styles.muted}>
+            {isSearching ? "Searching…" : "Loading movies…"}
+          </Text>
         </View>
       ) : error ? (
         <View style={styles.center}>
           <Text style={styles.error}>{error}</Text>
         </View>
-      ) : filtered.length === 0 ? (
+      ) : movies.length === 0 ? (
         <View style={styles.center}>
-          <Text style={styles.muted}>No movies match your search.</Text>
+          <Text style={styles.muted}>
+            {isSearching ? "No movies match your search." : "No movies found."}
+          </Text>
         </View>
       ) : (
         <FlatList
-          data={filtered}
+          data={movies}
           keyExtractor={(item) => item.id.toString()}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"

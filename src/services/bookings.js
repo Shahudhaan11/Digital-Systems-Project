@@ -23,23 +23,34 @@ export async function getBookings() {
   return data.map(toBooking);
 }
 
-// Add one new booking for the signed-in user.
+// Add one new booking for the signed-in user. Goes through the book_seats
+// RPC so the booking row and its individual seat rows are created in one
+// transaction - if another user has already taken one of these seats, the
+// unique constraint on booked_seats rejects the whole booking atomically
+// instead of letting two people double-book the same seat.
 export async function addBooking(booking) {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("You must be logged in to book.");
+  const seats = booking.seats
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 
-  const { error } = await supabase.from("bookings").insert({
-    user_id: user.id,
-    reference: booking.reference,
-    movie_title: booking.movieTitle,
-    show_date: booking.showDate,
-    show_time: booking.showTime,
-    seats: booking.seats,
-    total: booking.total,
+  const { error } = await supabase.rpc("book_seats", {
+    p_movie_title: booking.movieTitle,
+    p_show_date: booking.showDate,
+    p_show_time: booking.showTime,
+    p_seats: seats,
+    p_total: booking.total,
+    p_reference: booking.reference,
   });
-  if (error) throw error;
+
+  if (error) {
+    if (/booked_seats.*unique|duplicate key/i.test(error.message)) {
+      throw new Error(
+        "Sorry, one or more of your selected seats was just booked by someone else. Please choose different seats.",
+      );
+    }
+    throw error;
+  }
 }
 
 // Delete every booking belonging to the signed-in user.
@@ -63,19 +74,15 @@ export async function deleteBooking(id) {
 }
 
 // Return a list of seats already taken for a given movie + date + time,
-// across every user (reads the public taken_seats view, not raw bookings).
+// across every user (reads the public booked_seats table, one row per seat).
 export async function getTakenSeats(movieTitle, showDate, showTime) {
   const { data, error } = await supabase
-    .from("taken_seats")
-    .select("seats")
+    .from("booked_seats")
+    .select("seat")
     .eq("movie_title", movieTitle)
     .eq("show_date", showDate)
     .eq("show_time", showTime);
   if (error) throw error;
 
-  const taken = [];
-  for (const row of data) {
-    taken.push(...row.seats.split(",").map((s) => s.trim()));
-  }
-  return taken;
+  return data.map((row) => row.seat);
 }

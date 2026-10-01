@@ -31,3 +31,15 @@ export async function getMovies(category = 'popular') {
   const data = await response.json();
   return data.results;
 }
+
+// Search across all of TMDB by title, not just the currently loaded page.
+export async function searchMovies(query) {
+  const response = await fetch(
+    `${BASE_URL}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}`,
+  );
+  if (!response.ok) {
+    throw new Error('Request failed');
+  }
+  const data = await response.json();
+  return data.results;
+}

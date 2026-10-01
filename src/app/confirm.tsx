@@ -163,6 +163,15 @@ export default function ConfirmScreen() {
           <Text style={styles.buttonText}>Confirm Booking</Text>
         )}
       </TouchableOpacity>
+
+      {saveError ? (
+        <TouchableOpacity
+          style={styles.linkButton}
+          onPress={() => router.back()}
+        >
+          <Text style={styles.linkButtonText}>Choose Different Seats</Text>
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 }
@@ -217,6 +226,8 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
   },
   buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  linkButton: { marginTop: 14, alignItems: "center" },
+  linkButtonText: { color: colors.muted, fontSize: 14, fontWeight: "600" },
 
   // ticket
   ticket: {
